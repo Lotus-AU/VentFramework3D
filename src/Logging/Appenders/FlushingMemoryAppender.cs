@@ -35,7 +35,7 @@ public class FlushingMemoryAppender: InMemoryAppender
     {
         FileNamePattern = filenamePattern;
         this.TargetDirectory = new DirectoryInfo(directoryPath);
-        if (!TargetDirectory.Exists) throw new ConstraintException($"Logging directory \"{directoryPath}\" does not exist!");
+        if (!TargetDirectory.Exists) TargetDirectory.Create();
         this.MinLevel = minLevel ?? LogLevel.Info;
         flushingThread = new Thread(FlushMemory) { IsBackground = true };
         flushingThread.Start();

@@ -1,6 +1,5 @@
 using System;
-using Hazel;
-using VentLib.Networking.Helpers;
+using VentLib.Networking;
 using VentLib.Networking.Interfaces;
 
 namespace VentLib.Utilities.Optionals;
@@ -15,7 +14,7 @@ public class RpcOptional<T> : Optional<T>, IRpcSendable<RpcOptional<T>> where T 
 
     private RpcOptional(MessageReader reader)
     {
-        if (reader.ReadByte() == 0) return;
+        if (reader.Read<byte>() == 0) return;
         Item = reader.ReadDynamic(typeof(T));
         HasValue = true;
     }

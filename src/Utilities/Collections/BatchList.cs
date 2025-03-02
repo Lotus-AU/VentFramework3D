@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using Hazel;
 using UnityEngine;
 using VentLib.Networking;
 using VentLib.Networking.Batches;
@@ -37,7 +36,7 @@ public class BatchList<T>: List<T>, IBatchSendable<BatchList<T>> where T: IRpcSe
             T sample = this[0];
             MessageWriter writer = MessageWriter.Get();
             sample.Write(writer);
-            return writer.Length;
+            return writer.Size;
         });
 
         int length = itemSize.Get();
@@ -65,14 +64,14 @@ public class BatchList<T>: List<T>, IBatchSendable<BatchList<T>> where T: IRpcSe
     public BatchList<T> Read(BatchReader batchReader)
     {
         MessageReader reader = batchReader.GetNext();
-        int total = reader.ReadInt32();
+        int total = reader.Read<int>();
         if (total == 0) return this;
 
         Type itemType = typeof(T);
         while (batchReader.HasNext())
         {
             reader = batchReader.GetNext();
-            int batchItemCount = reader.ReadInt32();
+            int batchItemCount = reader.Read<int>();
             for (int i = 0; i < batchItemCount; i++)
             {
                 T item = reader.ReadDynamic(itemType);

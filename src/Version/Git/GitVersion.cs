@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
-using Hazel;
-using VentLib.Logging;
+using VentLib.Networking;
 using RlAssembly = System.Reflection.Assembly;
 
 namespace VentLib.Version.Git;
@@ -68,15 +67,15 @@ public class GitVersion: Version
     
     private GitVersion(MessageReader reader)
     {
-        MajorVersion = reader.ReadString();
-        MinorVersion = reader.ReadString();
-        PatchNumber = reader.ReadString();
+        MajorVersion = reader.Read<string>();
+        MinorVersion = reader.Read<string>();
+        PatchNumber = reader.Read<string>();
 
-        CommitNumber = reader.ReadString();
-        Branch = reader.ReadString();
+        CommitNumber = reader.Read<string>();
+        Branch = reader.Read<string>();
 
-        Sha = reader.ReadString();
-        Tag = reader.ReadString();
+        Sha = reader.Read<string>();
+        Tag = reader.Read<string>();
     }
 
     public GitVersion Clone() => (GitVersion)this.MemberwiseClone();

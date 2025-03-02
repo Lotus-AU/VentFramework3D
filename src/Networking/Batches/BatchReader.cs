@@ -29,7 +29,7 @@ public sealed class BatchReader
 
     internal void Add(MessageReader reader)
     {
-        int index = reader.ReadUInt16();
+        int index = reader.Read<int>();
         readerBuffer[index] = MessageReader.Get(reader);
         realCapacity++;
     }
@@ -42,7 +42,7 @@ public sealed class BatchReader
             throw new ConstraintException($"Unable to initialize BatchType: {targetType}. Class must have a default no-args constructor.");
         
         object batchObject = constructor.Invoke(null);
-        MethodInfo method = AccessTools.Method(targetType, "Read", new[] { typeof(BatchReader) })!;
-        return method.Invoke(batchObject, new object[] { this })!;
+        MethodInfo method = AccessTools.Method(targetType, "Read", [typeof(BatchReader)])!;
+        return method.Invoke(batchObject, [this])!;
     }
 }

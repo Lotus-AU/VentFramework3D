@@ -1,5 +1,3 @@
-using Hazel;
-
 namespace VentLib.Networking.RPC.Interfaces;
 
 public interface IRpcInserter

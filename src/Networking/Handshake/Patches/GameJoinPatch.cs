@@ -17,15 +17,15 @@ internal static class GameJoinPatch
     private static readonly StandardLogger log = LoggerFactory.GetLogger<StandardLogger>(typeof(GameJoinPatch));
     public static void Prefix(SpawnManager __instance, PlayerRef player)
     {
-        if (player != XRRigExtensions.LocalPlayer().PState._playerId) return;
-        HandleRpcPatch.AumUsers.Clear();
+        int localPlayerId = XRRigExtensions.LocalPlayer().PState.PlayerId; // usually 9
+        if (player != localPlayerId) return;
         foreach (Assembly assembly in Vents.RegisteredAssemblies.Keys)
         {
             Vents.RegisteredAssemblies[assembly] = VentControlFlag.AllowedReceiver | VentControlFlag.AllowedSender;
             Vents.BlockedReceivers[assembly] = null;
             Vents.VersionControl.PassedClients.Clear();
             Vents.VersionControl.PlayerVersions.Clear();
-            Vents.VersionControl.PlayerVersions[0] = VersionControl.Instance.Version ?? new NoVersion();
+            Vents.VersionControl.PlayerVersions[localPlayerId] = VersionControl.Instance.Version ?? new NoVersion();
         }
         log.Info("Refreshed Assembly Flags", "VentLib");
     }

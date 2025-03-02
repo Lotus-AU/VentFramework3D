@@ -1,6 +1,5 @@
 using System;
 using HarmonyLib;
-using Hazel;
 using VentLib.Networking;
 using VentLib.Networking.Interfaces;
 using VentLib.Utilities;

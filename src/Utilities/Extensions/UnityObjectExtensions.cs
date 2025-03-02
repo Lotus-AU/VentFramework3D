@@ -110,4 +110,19 @@ public static class UnityObjectExtensions
     {
         return new UnityOptional<T>(obj.GetComponentsInChildren<T>(includeInactive).FirstOrDefault(c => c.name == name));
     }
+    
+    public static string GetFullHierarchy(this MonoBehaviour obj) => GetFullHierarchy(obj.gameObject);
+    public static string GetFullHierarchy(this GameObject obj)
+    {
+        string hierarchy = obj.name;
+
+        Transform parent = obj.transform.parent;
+        while (parent != null)
+        {
+            hierarchy = parent.name + "." + hierarchy;
+            parent = parent.parent;
+        }
+
+        return hierarchy;
+    }
 }

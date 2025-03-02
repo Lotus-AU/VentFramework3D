@@ -32,8 +32,14 @@ public class VersionCheck
 
         if (lastSender != null)
             PlayerJoinPatch.WaitSet.Remove(lastSender.PlayerID);
+
+        if (vc.HandshakeFilter == null)
+        {
+            log.Warn("Mod hasn't implemented handshake filter! Please do so!");
+            return;
+        }
         
-        HandshakeResult action = vc.HandshakeFilter!.Invoke(version);
+        HandshakeResult action = vc.HandshakeFilter.Invoke(version);
         vc.VersionHandles
             .Where(h => h.Item1.HasFlag(action is HandshakeResult.PassDoNothing ? ReceiveExecutionFlag.OnSuccessfulHandshake : ReceiveExecutionFlag.OnFailedHandshake))
             .Do(h => h.Item2.Invoke(version, lastSender!));

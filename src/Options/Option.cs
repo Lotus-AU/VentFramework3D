@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Reflection;
 using VentLib.Logging;
+using VentLib.Networking;
 using VentLib.Networking.Interfaces;
 using VentLib.Options.Enum;
 using VentLib.Options.Events;

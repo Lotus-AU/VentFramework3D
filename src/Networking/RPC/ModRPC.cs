@@ -51,9 +51,9 @@ public class ModRPC
         };
     }
 
-    public void Send(int[]? clientIds, params object[] args)
+    public void Send(int[]? playerIds, params object[] args)
     {
-        Sender.Send(clientIds, args);
+        Sender.Send(playerIds, args);
     }
 
     public void InvokeTrampoline(params object[] args)

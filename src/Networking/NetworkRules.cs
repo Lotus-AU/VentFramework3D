@@ -1,4 +1,7 @@
+using System;
+using Fusion;
 using UnityEngine;
+using VentLib.Networking.Interfaces;
 using VentLib.Options;
 using VentLib.Options.IO;
 using VentLib.Utilities.Attributes;
@@ -8,7 +11,12 @@ namespace VentLib.Networking;
 [LoadStatic]
 public class NetworkRules
 {
-    // TODO: make configurable
+    public static readonly Type[] AllowedTypesOverNetwork =
+    {
+        typeof(bool), typeof(byte), typeof(float), typeof(int), typeof(sbyte), typeof(string), typeof(uint), typeof(ulong), typeof(ushort), typeof(short),
+        typeof(Vector2), typeof(Vector3), typeof(NetworkObject), typeof(NetworkBehaviour), typeof(IRpcSendable<>), typeof(IBatchSendable)
+    };
+
     public const int AbsoluteMaxPacketSize = 1024;
     public const int AbsoluteMinPacketSize = 256;
 
@@ -20,19 +28,8 @@ public class NetworkRules
         set => _packetSizeOption.SetHardValue(_maxPacketSize = Mathf.Clamp(value, AbsoluteMinPacketSize, AbsoluteMaxPacketSize));
     }
     private static int _maxPacketSize;
-
-    public static bool AllowRoomDiscovery
-    {
-        get => _allowRoomDiscovery;
-        set => _roomDiscoveryOption.SetHardValue(_allowRoomDiscovery = value);
-    }
-    private static bool _allowRoomDiscovery;
-    
     
     private static Option _packetSizeOption;
-    private static Option _roomDiscoveryOption;
-    
-
     static NetworkRules()
     {
         OptionManager networkManager = OptionManager.GetManager(file: "network.config");
@@ -44,13 +41,5 @@ public class NetworkRules
             .BuildAndRegister(networkManager);
 
         _maxPacketSize = _packetSizeOption.GetValue<int>();
-
-        _roomDiscoveryOption = new OptionBuilder()
-            .Key("Allow Room Discovery")
-            .Values(1, true, false)
-            .BindBool(_ => _roomDiscoveryOption?.Manager?.DelaySave())
-            .BuildAndRegister(networkManager);
-
-        _allowRoomDiscovery = _roomDiscoveryOption.GetValue<bool>();
     }
 }

@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Hazel;
 using VentLib.Networking.RPC.Interfaces;
 
 namespace VentLib.Networking.RPC.Inserters;

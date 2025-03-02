@@ -43,12 +43,12 @@ internal class DetouredSender
 
     private void DelayedSend(int[]? targets, object?[] args)
     {
-        Async.WaitUntil(() => AmongUsClient.Instance != null && PlayerControl.LocalPlayer != null, b => b, _ => Send(targets, args), 0.5f, 10, true);
+        Async.WaitUntil(() => XRRigExtensions.LocalPlayer() != null, b => b, _ => Send(targets, args), 0.5f, 10, true);
     }
 
     internal void Send(int[]? targets, object?[] args)
     {
-        if (AmongUsClient.Instance == null || PlayerControl.LocalPlayer == null) {
+        if (XRRigExtensions.LocalPlayer() == null) {
             DelayedSend(targets, args);
             return;
         }
@@ -61,8 +61,8 @@ internal class DetouredSender
     private void RealSend(int[]? targets, object?[] args)
     {
         RpcHookHelper.GlobalSendCount++; localSendCount++;
-        MonoRpc monoRpc = RpcV3.Immediate(PlayerControl.LocalPlayer.NetId, 203).Protected(false).ThreadSafe(true);
-        RpcBody rpcBody = RpcBody.Of(callId).Write((byte)receivers).WritePacked(PlayerControl.LocalPlayer.NetId);
+        MonoRpc monoRpc = RpcV3.Immediate(203).Protected(false).ThreadSafe(true);
+        RpcBody rpcBody = RpcBody.Of(callId).Write((byte)receivers).WritePacked(XRRigExtensions.LocalPlayer()._avatar.PState.PlayerId);
         args.Do(a => rpcBody.Write(a!));
         FinalizeV2(targets, monoRpc.SetBody(rpcBody));
     }
@@ -71,10 +71,10 @@ internal class DetouredSender
     {
         localSendCount++;
         uint batchId = BatchWriter.BatchId++;
-        MonoRpc monoRpc = RpcV3.Immediate(PlayerControl.LocalPlayer.NetId, 204).Protected(false).ThreadSafe(true)
+        MonoRpc monoRpc = RpcV3.Immediate(204).Protected(false).ThreadSafe(true)
             .Write(callId)
             .Write((byte)receivers)
-            .WritePacked(PlayerControl.LocalPlayer.NetId)
+            .WritePacked(XRRigExtensions.LocalPlayer()._avatar.PState.PlayerId)
             .Write(batchId)
             .Write((byte)args.Length);
 
@@ -116,8 +116,8 @@ internal class DetouredSender
     {
         int[]? blockedClients = Vents.CallingAssemblyBlacklist();
 
-        string senderString = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
-        int clientId = PlayerControl.LocalPlayer.GetClientId();
+        string senderString = XRRigExtensions.LocalPlayer().IsHost() ? "Host" : "NonHost";
+        int clientId = XRRigExtensions.LocalPlayer()._avatar.PState.PlayerId;
         if (targets != null) {
             log.Debug($"[{localSendCount}::{uuid}::{RpcHookHelper.GlobalSendCount}](Client: {clientId}) Sending RPC ({callId}) as {senderString} to {targets.StrJoin()} | {senders}");
             monoRpc.SendInclusive(blockedClients == null ? targets : targets.Except(blockedClients).ToArray());
@@ -133,13 +133,13 @@ internal class DetouredSender
     private bool CanSend(out int[]? targets)
     {
         targets = null;
-        if (receivers is RpcActors.LastSender) targets = new[] { Vents.GetLastSender(callId)?.GetClientId() ?? 999 };
+        if (receivers is RpcActors.LastSender) targets = [ Vents.GetLastSender(callId)?.PState.PlayerId ?? 999 ];
 
         return senders switch
         {
             RpcActors.None => false,
-            RpcActors.Host => AmongUsClient.Instance.AmHost,
-            RpcActors.NonHosts => !AmongUsClient.Instance.AmHost,
+            RpcActors.Host => XRRigExtensions.LocalPlayer().IsHost(),
+            RpcActors.NonHosts => !XRRigExtensions.LocalPlayer().IsHost(),
             RpcActors.LastSender => true,
             RpcActors.Everyone => true,
             _ => throw new ArgumentOutOfRangeException()

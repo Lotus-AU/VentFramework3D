@@ -1,4 +1,3 @@
-using Hazel;
 using VentLib.Networking.RPC.Interfaces;
 
 namespace VentLib.Networking.RPC.Inserters;

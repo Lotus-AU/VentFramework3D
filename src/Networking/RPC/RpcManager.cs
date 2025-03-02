@@ -2,14 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fusion;
-using Hazel;
-using InnerNet;
+using SG.Airlock;
+using SG.Airlock.Network;
+using UnityEngine;
 using VentLib.Logging;
 using VentLib.Networking.Batches;
 using VentLib.Networking.Helpers;
 using VentLib.Networking.RPC.Attributes;
 using VentLib.Utilities;
 using VentLib.Utilities.Extensions;
+using Object = UnityEngine.Object;
 
 namespace VentLib.Networking.RPC;
 
@@ -31,21 +33,21 @@ internal static class RpcManager
 
     internal static void HandleRpc(PlayerRef playerRef, MessageReader reader)
     {
-        uint customId = reader.ReadUInt32();
-        RpcActors actor = (RpcActors)reader.ReadByte();
-        if (!CanReceive(actor)) return;
-        uint senderId = reader.ReadPackedUInt32();
+        reader.Read<string>(); // Remove Signature
+        int callId = reader.Read<int>();
+        int targetPlayerId = reader.Read<int>();
         
-        PlayerControl? player = null;
-        if (AmongUsClient.Instance.allObjectsFast.TryGet(senderId, out InnerNetObject? netObject))
-        {
-            player = netObject!.TryCast<PlayerControl>();
-            if (player != null) Vents.LastSenders[customId] = player;
-        }
+        uint customId = reader.Read<uint>();
+        RpcActors actor = (RpcActors)reader.Read<byte>();
+        if (!CanReceive(actor)) return;
+        int senderId = reader.ReadPacked<int>();
 
-        if (player != null && player.PlayerId == PlayerControl.LocalPlayer.PlayerId) return;
-        string sender = "Client: " + (player == null ? "?" : player.GetClientId());
-        string receiverType = AmongUsClient.Instance.AmHost ? "Host" : "NonHost";
+        NetworkedLocomotionPlayer? player = GameObject.Find("PlayerState (" + senderId + ")").GetComponent<PlayerState>().LocomotionPlayer;
+        if (player != null) Vents.LastSenders[customId] = player;
+
+        if (player != null && player.PState.PlayerId == XRRigExtensions.LocalPlayer().PState.PlayerId) return;
+        string sender = "Client: " + (player == null ? "?" : $"{player.PState.NetworkName.Value} ({player.PState.PlayerId}");
+        string receiverType = XRRigExtensions.LocalPlayer().IsHost() ? "Host" : "NonHost";
         log.Info($"Custom RPC Received ({customId}) from \"{sender}\" as {receiverType}");
         if (!Vents.RpcBindings.TryGetValue(customId, out List<ModRPC>? rpcs))
         {
@@ -68,20 +70,20 @@ internal static class RpcManager
             // Cases in which the client is not the correct listener
             if (!CanReceive(actor, modRPC.Receivers)) continue;
             if (!Vents.CallingAssemblyFlag(modRPC.Assembly).HasFlag(VentControlFlag.AllowedReceiver)) continue;
-            args ??= ParameterHelper.Cast(modRPC.Parameters, reader);
+            args ??= ParameterHelper.Cast(modRPC.Parameters, MessageReader.Get(reader));
             modRPC.InvokeTrampoline(args);
         }
     }
 
     private static bool HandleBatch(MessageReader reader, ModRPC rpc, out object[] args)
     {
-        uint batchId = reader.ReadUInt32();
-        byte argumentAmount = reader.ReadByte();
+        uint batchId = reader.Read<uint>();
+        byte argumentAmount = reader.Read<byte>();
         BatchArgumentStorage.TryAdd(batchId, new object[argumentAmount]);
 
         args = BatchArgumentStorage[batchId];
-        byte argumentIndex = reader.ReadByte();
-        byte batchMarker = reader.ReadByte();
+        byte argumentIndex = reader.Read<byte>();
+        byte batchMarker = reader.Read<byte>();
         log.Trace($"Handling Batch (ID={batchId}, Marker={batchMarker}, Index={argumentIndex}, Args={argumentAmount})", "BatchRPC");
         if (batchMarker == 4)
         {
@@ -107,8 +109,8 @@ internal static class RpcManager
         return actor switch
         {
             RpcActors.None => false,
-            RpcActors.Host => AmongUsClient.Instance.AmHost && localActor is RpcActors.Host or RpcActors.NonHosts,
-            RpcActors.NonHosts => !AmongUsClient.Instance.AmHost && localActor is RpcActors.Everyone or RpcActors.NonHosts,
+            RpcActors.Host => XRRigExtensions.LocalPlayer().IsHost() && localActor is RpcActors.Host or RpcActors.NonHosts,
+            RpcActors.NonHosts => !XRRigExtensions.LocalPlayer().IsHost() && localActor is RpcActors.Everyone or RpcActors.NonHosts,
             RpcActors.LastSender => localActor is RpcActors.Everyone or RpcActors.LastSender,
             RpcActors.Everyone => true,
             _ => throw new ArgumentOutOfRangeException()

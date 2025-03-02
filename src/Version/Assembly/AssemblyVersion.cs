@@ -1,5 +1,5 @@
 using System;
-using Hazel;
+using VentLib.Networking;
 using VentLib.Utilities;
 // ReSharper disable MemberCanBePrivate.Global
 
@@ -34,13 +34,13 @@ public class AssemblyVersion: Version
     
     private AssemblyVersion(MessageReader reader)
     {
-        Assembly = AssemblyUtils.FindAssemblyFromFullName(reader.ReadString());
-        MajorVersion = reader.ReadInt32();
-        MinorVersion = reader.ReadInt32();
-        Build = reader.ReadInt32();
-        Revision = reader.ReadInt32();
-        MajorRevision = reader.ReadInt16();
-        MinorRevision = reader.ReadInt16();
+        Assembly = AssemblyUtils.FindAssemblyFromFullName(reader.Read<string>());
+        MajorVersion = reader.Read<int>();
+        MinorVersion = reader.Read<int>();
+        Build = reader.Read<int>();
+        Revision = reader.Read<int>();
+        MajorRevision = reader.Read<short>();
+        MinorRevision = reader.Read<short>();
     }
 
     public override Version Read(MessageReader reader) => new AssemblyVersion(reader);

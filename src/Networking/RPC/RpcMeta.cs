@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Hazel;
 using VentLib.Utilities.Collections;
 using VentLib.Utilities.Extensions;
 
@@ -12,13 +11,11 @@ public class RpcMeta
     public static Remote<Action<RpcMeta>> AddSubscriber(Action<RpcMeta> metaConsumer) => Subscribers.Add(metaConsumer);
     
     public int Recipient { get; internal set; }
-    public uint NetId { get; internal set; }
-    public byte CallId { get; internal set; }
+    public uint CallId { get; internal set; }
     public bool Immediate { get; internal set; }
     public bool RequiresHost { get; internal set; }
     public int PacketSize { get; internal set; }
     public List<object> Arguments { get; internal set; } = null!;
-    public SendOption SendOption { get; internal set; }
 
     public void Notify()
     {
@@ -30,6 +27,6 @@ public class RpcMeta
 
     public override string ToString()
     {
-        return $"({((RpcCalls)CallId).Name()} => NetID={NetId}, PacketSize={PacketSize}, SendOptions={SendOption}, Arguments={Arguments.Fuse()})";
+        return $"({CallId} => PacketSize={PacketSize}, Arguments={Arguments.Fuse()})";
     }
 }

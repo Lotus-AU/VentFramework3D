@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Hazel;
-using InnerNet;
+using Fusion;
+using SG.Airlock.Network;
 using VentLib.Logging;
 using VentLib.Networking.Interfaces;
 using VentLib.Networking.RPC.Inserters;
@@ -102,12 +102,22 @@ public class RpcBody
         return this;
     }
 
-    public RpcBody Write(InnerNetObject innerNetObject)
+    public RpcBody Write(NetworkObject networkObject)
     {
-        Arguments.Add(innerNetObject);
-        inserters.Add(InnerNetObjectInserter.Instance);
+        if (networkObject == null) throw new ArgumentNullException(nameof(networkObject), "Cannot write null objects!");
+        Arguments.Add(networkObject);
+        inserters.Add(NetworkObjectInserter.Instance);
         return this;
     }
+    
+    public RpcBody Write(NetworkBehaviour networkBehaviour)
+    {
+        if (networkBehaviour == null) throw new ArgumentNullException(nameof(networkBehaviour), "Cannot write null objects!");
+        Arguments.Add(networkBehaviour);
+        inserters.Add(NetworkBehaviourInserter.Instance);
+        return this;
+    }
+
 
     public RpcBody WriteCustom<T>(T obj, IRpcInserter customInserter)
     {
@@ -224,8 +234,8 @@ public class RpcBody
         RegisterInserter(new BoolInserter());
         RegisterInserter(new ByteInserter());
         RegisterInserter(new FloatInserter());
-        RegisterInserter(new GameOptionsInserter());
-        RegisterInserter(new InnerNetObjectInserter());
+        RegisterInserter(new NetworkObjectInserter());
+        RegisterInserter(new NetworkBehaviourInserter());
         RegisterInserter(new IntInserter());
         RegisterPackedInserter(new IntPackedInserter());
         RegisterInserter(new RpcWritableInserter());
@@ -237,6 +247,6 @@ public class RpcBody
         RegisterInserter(new UshortInserter());
         RegisterInserter(new Vector2Inserter());
         RegisterInserter(new EnumerableInserter());
-        SetInserter(typeof(PlayerControl), typeof(InnerNetObject));
+        SetInserter(typeof(NetworkedLocomotionPlayer), typeof(NetworkBehaviour));
     }
 }

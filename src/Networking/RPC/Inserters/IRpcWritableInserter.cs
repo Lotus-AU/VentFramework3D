@@ -1,4 +1,3 @@
-using Hazel;
 using VentLib.Networking.Interfaces;
 using VentLib.Networking.RPC.Interfaces;
 

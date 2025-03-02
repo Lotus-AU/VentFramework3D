@@ -1,4 +1,4 @@
-using Hazel;
+using VentLib.Networking;
 
 namespace VentLib.Version.BuiltIn;
 

@@ -12,6 +12,9 @@ using VentLib.Commands;
 using VentLib.Localization;
 using VentLib.Logging;
 using VentLib.Logging.Default;
+using VentLib.Networking;
+using VentLib.Networking.Attributes;
+using VentLib.Networking.Enums;
 using VentLib.Networking.Interfaces;
 using VentLib.Networking.RPC;
 using VentLib.Networking.RPC.Attributes;
@@ -82,7 +85,7 @@ public partial class Vents : BasePlugin
 
     public static NetworkedLocomotionPlayer? GetLastSender(uint rpcId) => LastSenders.GetValueOrDefault(rpcId);
 
-    public static bool Register(Assembly assembly, bool localize = true)
+    public static bool Register(Assembly assembly, BasePlugin plugin, bool localize = true)
     {
         NoDepLogger.Info($"Registering {assembly.GetName().Name}");
         if (RegisteredAssemblies.ContainsKey(assembly)) return false;
@@ -99,6 +102,8 @@ public partial class Vents : BasePlugin
         OptionManager.GetManager(assembly);
         CommandRunner.Register(assembly);
 
+        ModFlags flags = VentModFlagsAttribute.GetVentModFlags(plugin.GetType());
+        if (flags.HasFlag(ModFlags.RequireOnAllClients)) CodeManager.AddAssemblyToCode(assembly);
 
         var methods = assembly.GetTypes()
             .SelectMany(t => t.GetMethods(BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
@@ -124,7 +129,7 @@ public partial class Vents : BasePlugin
         return true;
     }
 
-    public static void Initialize()
+    private static void Initialize()
     {
         if (_initialized) return;
         MainThreadAnchor.IsMainThread();
@@ -137,18 +142,18 @@ public partial class Vents : BasePlugin
 
         var _ = Async.AUCWrapper;
         RootAssemby = Assembly.GetExecutingAssembly();
-        IL2CPPChainloader.Instance.PluginLoad += (_, assembly, _) => Register(assembly, assembly == RootAssemby);
-        Register(Assembly.GetExecutingAssembly());
+        IL2CPPChainloader.Instance.PluginLoad += (_, assembly, plugin) => Register(assembly, plugin,assembly == RootAssemby);
+        Register(Assembly.GetExecutingAssembly(), Instance);
         Harmony.PatchAll(Assembly.GetExecutingAssembly());
         _initialized = true;
         NoDepLogger.High("Sucessfully initialized VentFramework.");
     }
 
-    public static void BlockClient(Assembly assembly, int clientId)
+    public static void BlockClient(Assembly assembly, int playerId)
     {
         int[] newBlockedArray = BlockedReceivers.TryGetValue(assembly, out int[]? blockedClients)
-            ? blockedClients.AddToArray(clientId)
-            : new[] { clientId };
+            ? blockedClients.AddToArray(playerId)
+            : [playerId];
         BlockedReceivers[assembly] = newBlockedArray;
     }
 

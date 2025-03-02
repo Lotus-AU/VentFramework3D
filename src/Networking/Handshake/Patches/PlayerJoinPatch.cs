@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using HarmonyLib;
+using SG.Airlock;
 using SG.Airlock.Network;
 using UnityEngine;
 using VentLib.Networking.RPC;
@@ -26,16 +27,16 @@ internal static class PlayerJoinPatch
         if (!vc.Handshake) return;
         
         ModRPC rpc = Vents.FindRPC(VersionCheck, AccessTools.Method(typeof(VersionCheck), nameof(Handshake.VersionCheck.RequestVersion)))!;
-        WaitSet.Add(player);
+        WaitSet.Add(player.PlayerId);
         Async.Schedule(() =>
         {
-            rpc.Send([player]);
+            rpc.Send([player.PlayerId]);
             if (vc.ResponseTimer <= 0) return;
             Async.Schedule(() =>
             {
                 if (!WaitSet.Contains(player)) return;
                 int targetPlayerId = player.PlayerId;
-                Vents.LastSenders[VersionCheck] = Object.FindObjectsOfType<NetworkedLocomotionPlayer>().FirstOrDefault(p => p.PlayerID.PlayerId == targetPlayerId)!;
+                Vents.LastSenders[VersionCheck] = GameObject.Find("PlayerState (" + targetPlayerId + ")").GetComponent<PlayerState>().LocomotionPlayer;
                 _modRPC.InvokeTrampoline(new NoVersion());
             }, vc.ResponseTimer);
         }, NetUtils.DeriveDelay(1.5f));

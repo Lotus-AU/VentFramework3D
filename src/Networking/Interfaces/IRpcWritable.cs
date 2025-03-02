@@ -1,5 +1,3 @@
-using Hazel;
-
 namespace VentLib.Networking.Interfaces;
 
 public interface IRpcWritable

@@ -1,6 +1,5 @@
 using System;
-using Hazel;
-using InnerNet;
+using Fusion;
 using VentLib.Networking.Interfaces;
 
 namespace VentLib.Networking.RPC.Interfaces;
@@ -32,7 +31,9 @@ public interface MonoRpc: IStrongRpc
     
     public MonoRpc Write(ushort b);
 
-    public MonoRpc Write(InnerNetObject innerNetObject);
+    public MonoRpc Write(NetworkBehaviour innerNetObject);
+    
+    public MonoRpc Write(NetworkObject innerNetObject);
 
     public MonoRpc WriteCustom<T>(T obj, Action<T, MessageWriter> writerFunction);
 
@@ -46,11 +47,11 @@ public interface MonoRpc: IStrongRpc
 
     public MonoRpc ThreadSafe(bool threadSafe);
 
-    public void Send(int clientId = -1);
+    public void Send(int playerId = -1, bool notify = false);
 
-    public void SendInclusive(params int[] clientIds);
+    public void SendInclusive(params int[] playerIds);
 
-    public void SendExcluding(params int[] clientIds);
+    public void SendExcluding(params int[] playerIds);
 
     public MonoRpc Clone();
 }
