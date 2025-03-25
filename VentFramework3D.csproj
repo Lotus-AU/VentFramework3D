@@ -25,9 +25,9 @@
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
-    <ItemGroup>
+    <!-- <ItemGroup>
         <EmbeddedResource Include=".\assets\**\*" />
-    </ItemGroup>
+    </ItemGroup> -->
 
     <ItemGroup>
         <PackageReference Include="Costura.Fody" Version="5.7.0">
