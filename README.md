@@ -1,6 +1,12 @@
 # VentFramework 3D
 _The first framework for AU3D._
 
+# UPDATE:
+This code probably won't ever be updated.
+I don't feel like buying Among Us 3D, and keeping this updated.
+Someone else can handle this project if they want to.
+--------------------------------------------
+
 A port of [VentFramework-Countinued](https://github.com/Lotus-AU/VentFramework-Continued) over to Among Us 3D.
 
 # Information
